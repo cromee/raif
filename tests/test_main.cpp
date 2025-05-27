@@ -35,9 +35,9 @@ int main() {
     };
     const int KH = 3, KW = 3, STRIDE = 1;
     float out[BATCH*OC*H*W] = {0};
-    raif::conv2d_ref(input, filter, out,
-                     BATCH, IC, OC, H, W, KH, KW, STRIDE,
-                     raif::PADDING_ZERO);
+    raif::conv2d_im2col(input, filter, out,
+                        BATCH, IC, OC, H, W, KH, KW, STRIDE,
+                        raif::PADDING_ZERO);
     for(int i=0;i<H*W;i++) std::cout << out[i] << " ";
     std::cout << std::endl;
 
