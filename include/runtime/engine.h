@@ -1,5 +1,5 @@
-#ifndef RAIF_RUNTIME_H
-#define RAIF_RUNTIME_H
+#ifndef RAIF_ENGINE_H
+#define RAIF_ENGINE_H
 
 namespace raif {
 
@@ -9,4 +9,4 @@ void matmul(float* C, const float* A, const float* B, int M, int N, int K);
 
 } // namespace raif
 
-#endif // RAIF_RUNTIME_H
+#endif // RAIF_ENGINE_H
