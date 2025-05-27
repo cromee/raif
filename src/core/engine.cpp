@@ -46,13 +46,47 @@ void matmul_avx2(float* C, const float* A, const float* B, int M, int N, int K) 
     }
 }
 
+void matmul_avx512(float* C, const float* A, const float* B,
+                   int M, int N, int K) {
+#ifdef __AVX512F__
+    for(int i=0;i<M;i++) {
+        for(int j=0;j<N;j++) {
+            __m512 sum = _mm512_setzero_ps();
+            int k=0;
+            for(; k+16<=K; k+=16) {
+                __m512 va = _mm512_loadu_ps(A + i*K + k);
+                __m512 vb = _mm512_set1_ps(*(B + k*N + j));
+                sum = _mm512_fmadd_ps(va, vb, sum);
+            }
+            alignas(64) float tmp[16];
+            _mm512_store_ps(tmp, sum);
+            float scalar_sum = 0.f;
+            for(int t=0;t<16;t++) scalar_sum += tmp[t];
+            for(; k<K; ++k) scalar_sum += A[i*K+k]*B[k*N+j];
+            C[i*N+j] = scalar_sum;
+        }
+    }
+#else
+    matmul_avx2(C, A, B, M, N, K);
+#endif
+}
+
+void matmul_amx(float* C, const float* A, const float* B,
+                int M, int N, int K) {
+    // Placeholder implementation. In a real implementation this would use
+    // AMX tile instructions.
+    matmul_avx512(C, A, B, M, N, K);
+}
+
 MatMulFn matmul_impl = matmul_ref;
 
 } // anonymous namespace
 
 void init() {
 #ifdef __x86_64__
-    if (__builtin_cpu_supports("avx2")) {
+    if (__builtin_cpu_supports("avx512f")) {
+        matmul_impl = matmul_avx512;
+    } else if (__builtin_cpu_supports("avx2")) {
         matmul_impl = matmul_avx2;
     }
 #endif
