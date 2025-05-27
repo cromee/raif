@@ -2,6 +2,7 @@
 #include "runtime/fully_connected.h"
 #include <immintrin.h>
 #include <cstring>
+#include <algorithm>
 
 namespace raif {
 
@@ -73,9 +74,42 @@ void matmul_avx512(float* C, const float* A, const float* B,
 
 void matmul_amx(float* C, const float* A, const float* B,
                 int M, int N, int K) {
-    // Placeholder implementation. In a real implementation this would use
-    // AMX tile instructions.
-    matmul_avx512(C, A, B, M, N, K);
+    // Simple blocked matrix multiplication meant to mimic AMX style tiling.
+    // This does not use actual AMX intrinsics but follows a tile based
+    // computation pattern so the implementation can be easily replaced with
+    // real AMX instructions in the future.
+
+    constexpr int TM = 16; // tile size for rows of A / C
+    constexpr int TN = 16; // tile size for cols of B / C
+    constexpr int TK = 16; // tile size for reduction dimension
+
+    for (int i = 0; i < M; i += TM) {
+        int rows = std::min(TM, M - i);
+        for (int j = 0; j < N; j += TN) {
+            int cols = std::min(TN, N - j);
+
+            // Initialize the output tile
+            for (int ii = 0; ii < rows; ++ii) {
+                for (int jj = 0; jj < cols; ++jj) {
+                    C[(i + ii) * N + (j + jj)] = 0.0f;
+                }
+            }
+
+            for (int k = 0; k < K; k += TK) {
+                int depth = std::min(TK, K - k);
+                for (int ii = 0; ii < rows; ++ii) {
+                    const float* a_ptr = A + (i + ii) * K + k;
+                    for (int kk = 0; kk < depth; ++kk) {
+                        float a = a_ptr[kk];
+                        const float* b_ptr = B + (k + kk) * N + j;
+                        for (int jj = 0; jj < cols; ++jj) {
+                            C[(i + ii) * N + (j + jj)] += a * b_ptr[jj];
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 MatMulFn matmul_impl = matmul_ref;
