@@ -1,4 +1,4 @@
-#include "raif/relu.h"
+#include "runtime/activation.h"
 #include <algorithm>
 #include <immintrin.h>
 
@@ -20,3 +20,4 @@ void relu_avx2(float* dst, const float* src, int len) {
 }
 
 } // namespace raif
+
