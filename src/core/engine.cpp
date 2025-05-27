@@ -1,8 +1,11 @@
 #include "runtime/engine.h"
+#include "runtime/fully_connected.h"
 #include <immintrin.h>
 #include <cstring>
 
 namespace raif {
+
+void init_fully_connected();
 
 namespace {
 using MatMulFn = void(*)(float*, const float*, const float*, int, int, int);
@@ -53,6 +56,7 @@ void init() {
         matmul_impl = matmul_avx2;
     }
 #endif
+    init_fully_connected();
 }
 
 void matmul(float* C, const float* A, const float* B, int M, int N, int K) {
