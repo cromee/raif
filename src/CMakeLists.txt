@@ -6,6 +6,7 @@ file(GLOB RAIF_OP_SRCS
 )
 file(GLOB RAIF_KERNEL_SRCS
     ../kernels/cpu/winograd/*.cpp
+    ../kernels/cpu/signal/*.cpp
 )
 add_library(raif STATIC
     ${RAIF_CORE_SRCS}
