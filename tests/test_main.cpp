@@ -2,6 +2,8 @@
 #include "runtime/engine.h"
 #include "runtime/activation.h"
 #include "runtime/convolution.h"
+#include "runtime/fft.h"
+#include "runtime/fir.h"
 
 int main() {
     raif::init();
@@ -40,6 +42,16 @@ int main() {
                         raif::PADDING_ZERO);
     for(int i=0;i<H*W;i++) std::cout << out[i] << " ";
     std::cout << std::endl;
+
+    // Simple FFT/IFFT test
+    std::complex<float> data[4] = {1.0f, 0.0f, -1.0f, 0.0f};
+    raif::fft_ref(data, 4);
+    raif::ifft_ref(data, 4);
+
+    // FIR filter test
+    float coeffs[3] = {0.25f, 0.5f, 0.25f};
+    float fir_out[4];
+    raif::fir_filter_ref(X, coeffs, fir_out, 4, 3);
 
     return 0;
 }
